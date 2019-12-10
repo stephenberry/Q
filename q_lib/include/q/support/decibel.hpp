@@ -7,7 +7,7 @@
 #define CYCFI_Q_DECIBEL_HPP_FEBRUARY_21_2018
 
 #include <cmath>
-#include <q/support/base.hpp>
+#include <q/detail/db_table.hpp>
 
 namespace cycfi { namespace q
 {
@@ -17,19 +17,19 @@ namespace cycfi { namespace q
       struct _direct {};
       constexpr static _direct direct = {};
 
-      decibel() : val(0.0f) {}
-      decibel(double val);
+      constexpr decibel() : val(0.0f) {}
+      constexpr decibel(double val);
       constexpr decibel(double val, _direct) : val(val) {}
 
-      explicit operator double() const       { return fast_pow10(val/20.0); }
-      explicit operator float() const        { return fast_pow10(val/20.0); }
-      constexpr decibel operator-() const    { return { -val, direct }; }
+      constexpr explicit operator double() const   { return detail::db2a(val); }
+      constexpr explicit operator float() const    { return detail::db2a(val); }
+      constexpr decibel operator-() const          { return { -val, direct }; }
 
       double val = 0.0f;
    };
 
-   inline decibel::decibel(double val)
-    : val(20.0f * fast_log10(val))
+   constexpr decibel::decibel(double val)
+    : val(detail::a2db(val))
    {}
 
    constexpr decibel operator-(decibel a, decibel b)

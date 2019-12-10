@@ -6,7 +6,7 @@
 ###############################################################################
 cmake_minimum_required(VERSION 3.5.1)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ###############################################################################
@@ -20,6 +20,8 @@ endif()
 set(APP_SOURCES
 
    bitset.cpp
+   decibel.cpp
+
    gen_basic_square.cpp
    gen_basic_saw.cpp
    gen_basic_pulse.cpp
@@ -36,10 +38,13 @@ set(APP_SOURCES
    envelope_shaper.cpp
    moving_average.cpp
    moving_average2.cpp
+   moving_maximum.cpp
+   moving_maximum2.cpp
    comb.cpp
    compressor_expander.cpp
    compressor_expander2.cpp
    peak_detector.cpp
+   onset_detector.cpp
    pitch_detector.cpp
    period_detector.cpp
    pitch_detector_ex.cpp
