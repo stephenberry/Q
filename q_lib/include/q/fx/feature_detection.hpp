@@ -1,5 +1,5 @@
 /*=============================================================================
-   Copyright (c) 2014-2019 Joel de Guzman. All rights reserved.
+   Copyright (c) 2014-2021 Joel de Guzman. All rights reserved.
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
@@ -10,7 +10,7 @@
 #include <q/support/decibel.hpp>
 #include <q/fx/envelope.hpp>
 
-namespace cycfi { namespace q
+namespace cycfi::q
 {
    ////////////////////////////////////////////////////////////////////////////
    // The output of a simple comparator is determined by its inputs. The
@@ -95,6 +95,18 @@ namespace cycfi { namespace q
          return *this;
       }
 
+      void threshold(float low, float high)
+      {
+         _low = low;
+         _high = high;
+      }
+
+      void threshold(decibel low, decibel high)
+      {
+         _low = float(low);
+         _high = float(high);
+      }
+
       float _low, _high;
       bool y = 0;
    };
@@ -159,6 +171,6 @@ namespace cycfi { namespace q
       float const       _sensitivity;
       schmitt_trigger   _cmp;
    };
-}}
+}
 
 #endif

@@ -1,14 +1,14 @@
 /*=============================================================================
-   Copyright (c) 2014-2019 Joel de Guzman. All rights reserved.
+   Copyright (c) 2014-2021 Joel de Guzman. All rights reserved.
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
-#if !defined(CYCFI_Q_CLIP_DECEMBER_24_2015)
-#define CYCFI_Q_CLIP_DECEMBER_24_2015
+#if !defined(CYCFI_Q_WAVE_SHAPER_DECEMBER_24_2015)
+#define CYCFI_Q_WAVE_SHAPER_DECEMBER_24_2015
 
 #include <q/support/base.hpp>
 
-namespace cycfi { namespace q
+namespace cycfi::q
 {
    ////////////////////////////////////////////////////////////////////////////
    // clip a signal to range -_max...+_max
@@ -17,6 +17,10 @@ namespace cycfi { namespace q
    ////////////////////////////////////////////////////////////////////////////
    struct clip
    {
+      constexpr clip(decibel max)
+       : _max(float(max))
+      {}
+
       constexpr clip(float max = 1.0f)
        : _max(max)
       {}
@@ -40,6 +44,6 @@ namespace cycfi { namespace q
          return 1.5 * s - 0.5 * s * s * s;
       }
    };
-}}
+}
 
 #endif

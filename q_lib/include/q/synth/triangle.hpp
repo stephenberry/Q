@@ -1,5 +1,5 @@
 /*=============================================================================
-   Copyright (c) 2014-2019 Joel de Guzman. All rights reserved.
+   Copyright (c) 2014-2021 Joel de Guzman. All rights reserved.
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
@@ -9,7 +9,7 @@
 #include <q/support/phase.hpp>
 #include <q/utility/antialiasing.hpp>
 
-namespace cycfi { namespace q
+namespace cycfi::q
 {
   ////////////////////////////////////////////////////////////////////////////
    // basic triangle-wave synthesizer (not bandwidth limited)
@@ -37,7 +37,7 @@ namespace cycfi { namespace q
    {
       constexpr float operator()(phase p, phase dt) const
       {
-         constexpr auto end = phase::max();
+         constexpr auto end = phase::end();
          constexpr auto edge1 = end/4;
          constexpr auto edge2 = end-edge1;
          constexpr float x = 4.0f / phase::one_cyc;
@@ -60,6 +60,6 @@ namespace cycfi { namespace q
    };
 
    constexpr auto triangle = triangle_synth{};
-}}
+}
 
 #endif

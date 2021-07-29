@@ -1,5 +1,5 @@
 /*=============================================================================
-   Copyright (c) 2014-2019 Joel de Guzman. All rights reserved.
+   Copyright (c) 2014-2021 Joel de Guzman. All rights reserved.
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
@@ -7,12 +7,13 @@
 #define CYCFI_Q_FX_ENVELOPE_HPP_MAY_17_2018
 
 #include <q/support/literals.hpp>
+#include <q/fx/moving_average.hpp>
+#include <q/fx/lowpass.hpp>
+#include <q/support/decibel.hpp>
 #include <algorithm>
 
-namespace cycfi { namespace q
+namespace cycfi::q
 {
-   using namespace q::literals;
-
    ////////////////////////////////////////////////////////////////////////////
    // The envelope follower will follow the envelope of a signal with gradual
    // release (given by the release parameter). The signal decays
@@ -103,131 +104,140 @@ namespace cycfi { namespace q
    // Based on http://tinyurl.com/yat2tuf8
    //
    // There is no filtering. The output is a jagged, staircase-like envelope.
-   // That way, this can be useful for analysis such as onset detection.
+   // That way, this can be useful for analysis such as onset detection. For
+   // monophonic signals, the hold duration should be equal to or slightly
+   // longer than 1/div the period of the lowest frequency of the signal we
+   // wish to track, where `div` is the sole template parameter. The hold
+   // parameter determines the staircase step duration. This staircase-like
+   // envelope can be effectively smoothed out using a moving average filter
+   // with the same duration as the hold parameter.
+   //
+   // fast_envelope_follower is provided, which has div = 2.
    ////////////////////////////////////////////////////////////////////////////
-   struct fast_envelope_follower
+   template <std::size_t div>
+   struct basic_fast_envelope_follower
    {
-      fast_envelope_follower(duration hold, std::uint32_t sps)
-       : _reset((float(hold) * sps))
+      static_assert(div >= 1, "div must be >= 1");
+      static constexpr std::size_t size = div+1;
+
+      basic_fast_envelope_follower(duration hold, std::uint32_t sps)
+       : basic_fast_envelope_follower((float(hold) * sps))
       {}
 
-      fast_envelope_follower(std::size_t hold_samples)
+      basic_fast_envelope_follower(std::size_t hold_samples)
        : _reset(hold_samples)
-      {}
+      {
+         _y.fill(0);
+      }
 
       float operator()(float s)
       {
-         // Update _y1 and _y2
-         if (s > _y1)
-            _y1 = s;
-         if (s > _y2)
-            _y2 = s;
+         // Update _y
+         for (auto& y : _y)
+            y = std::max(s, y);
 
-         // Reset _y1 and _y2 alternately every so often (the hold parameter)
+         // Reset _y in a round-robin fashion every so often (the hold parameter)
          if (_tick++ == _reset)
          {
             _tick = 0;
-            if (_i++ & 1)
-               _y1 = 0;
-            else
-               _y2 = 0;
+            _y[_i++ % size] = 0;
          }
 
-         // The peak is the maximum of _y1 and _y2
-         _latest = std::max(_y1, _y2);
-         return _latest;
+         // The peak is the maximum of _y
+         _peak = *std::max_element(_y.begin(), _y.end());
+         return _peak;
       }
 
       float operator()() const
       {
-         return _latest;
+         return _peak;
       }
 
-      float _y1 = 0, _y2 = 0, _latest = 0;
+      std::array<float, size> _y;
+      float _peak = 0;
       std::uint16_t _tick = 0, _i = 0;
       std::uint16_t const _reset;
    };
 
-   ////////////////////////////////////////////////////////////////////////////
-   // envelope_shaper is an envelope processor that allows control of the
-   // envelope's attack, decay and release parameters. Take note that the
-   // envelope_shaper is a processor and does not synthesize an envelope. It
-   // takes in an envelope and processes it to increase (but not decrease)
-   // attack, decay and release.
-   ////////////////////////////////////////////////////////////////////////////
-   struct envelope_shaper
-   {
-      static constexpr float hysteresis = 0.0001; // -80dB
+   using fast_envelope_follower = basic_fast_envelope_follower<2>;
 
-      envelope_shaper(
-         duration attack
-       , duration decay
-       , duration release
-       , decibel release_threshold
-       , std::uint32_t sps
-      ) : envelope_shaper(
-         fast_exp3(-2.0f / (sps * double(attack)))
-       , fast_exp3(-2.0f / (sps * double(decay)))
-       , fast_exp3(-2.0f / (sps * double(release)))
-       , double(release_threshold))
+   ////////////////////////////////////////////////////////////////////////////
+   // This is a fast_envelope_follower followed by a moving average filter to
+   // smooth out the staircase ripples as mentioned in the
+   // fast_envelope_follower notes.
+   ////////////////////////////////////////////////////////////////////////////
+   template <std::size_t div>
+   struct basic_smoothed_fast_envelope_follower
+   {
+      basic_smoothed_fast_envelope_follower(duration hold, std::uint32_t sps)
+       : _fenv(hold, sps)
+       , _ma(hold, sps)
       {}
 
-      envelope_shaper(
-         float attack
-       , float decay
-       , float release
-       , float release_threshold
-      )
-       : _attack(attack)
-       , _decay(decay)
-       , _release(release)
-       , _release_threshold(release_threshold)
+      basic_smoothed_fast_envelope_follower(std::size_t hold_samples)
+       : _fenv(hold_samples)
+       , _ma(hold_samples)
       {}
 
       float operator()(float s)
       {
-         if (y < _peak || s > y) // upward
-         {
-            if (_peak < s)
-               _peak = s;
-            auto target = 1.6f * s;
-            y = target + _attack * (y - target);
-            if (y > _peak)
-               _peak = 0;
-         }
-         else
-         {
-            auto slope = (s < _release_threshold)? _release : _decay;
-            y = s + slope * (y - s);
-            if (y < hysteresis)
-               _peak = y = 0;
-         }
-         return y;
+         return _ma(_fenv(s));
       }
 
       float operator()() const
       {
-         return y;
+         return _ma();
       }
 
-      void config(duration attack, duration decay, std::uint32_t sps)
-      {
-         _attack = fast_exp3(-2.0f / (sps * double(attack)));
-         _decay = fast_exp3(-2.0f / (sps * double(decay)));
-      }
-
-      void attack(float attack_, std::uint32_t sps)
-      {
-         _attack = fast_exp3(-2.0f / (sps * attack_));
-      }
-
-      void release(float release_, std::uint32_t sps)
-      {
-         _decay = fast_exp3(-2.0f / (sps * release_));
-      }
-
-      float y = 0, _peak = 0, _attack, _decay, _release, _release_threshold;
+      basic_fast_envelope_follower<div>   _fenv;
+      moving_average                      _ma;
    };
-}}
+
+   using smoothed_fast_envelope_follower = basic_smoothed_fast_envelope_follower<2>;
+
+   ////////////////////////////////////////////////////////////////////////////
+   // This rms envelope follower combines fast response, low ripple using
+   // moving RMS detection and the smoothed_fast_envelope_follower for
+   // tracking the moving RMS. Unlike other envelope followers in this
+   // header, this one works in the dB domain, which makes it easy to use as
+   // an envelope follower for dynamic range effects (compressor, expander,
+   // and agc) which also work in the dB domain.
+   //
+   // The signal path is as follows:
+   //    1. Square signal
+   //    2. Smoothed fast envelope follower
+   //    3. Square root.
+   //
+   // Designed by Joel de Guzman (June 2020)
+   ////////////////////////////////////////////////////////////////////////////
+   struct fast_rms_envelope_follower
+   {
+      constexpr static auto threshold = float(-120_dB);
+
+      fast_rms_envelope_follower(duration hold, std::uint32_t sps)
+       : _fenv(hold, sps)
+      {
+      }
+
+      decibel operator()(float s)
+      {
+         auto e = _fenv(s * s);
+         if (e < threshold)
+            e = 0;
+
+         // Perform square-root in the dB domain:
+         _db = decibel{ e } / 2.0f;
+         return _db;
+      }
+
+      decibel operator()() const
+      {
+         return _db;
+      }
+
+      q::decibel                       _db = 0_dB;
+      smoothed_fast_envelope_follower  _fenv;
+   };
+}
 
 #endif

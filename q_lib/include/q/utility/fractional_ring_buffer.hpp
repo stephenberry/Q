@@ -1,5 +1,5 @@
 /*=============================================================================
-   Copyright (c) 2014-2019 Joel de Guzman. All rights reserved.
+   Copyright (c) 2014-2021 Joel de Guzman. All rights reserved.
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
@@ -9,7 +9,7 @@
 #include <q/utility/interpolation.hpp>
 #include <q/utility/ring_buffer.hpp>
 
-namespace cycfi { namespace q
+namespace cycfi::q
 {
    ////////////////////////////////////////////////////////////////////////////
    // fractional_ring_buffer: a fractional ring buffer allows sub-sample
@@ -38,6 +38,6 @@ namespace cycfi { namespace q
          return interpolate(static_cast<base_type const&>(*this), index);
       }
    };
-}}
+}
 
 #endif

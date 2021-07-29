@@ -10,10 +10,10 @@
 #include <q/support/midi.hpp>
 #include <q_io/midi_device.hpp>
 
-namespace cycfi { namespace q
+namespace cycfi::q
 {
    ////////////////////////////////////////////////////////////////////////////
-   class midi_input_stream
+   class midi_input_stream : non_copyable
    {
    public:
 
@@ -26,6 +26,9 @@ namespace cycfi { namespace q
 
                            template <typename Processor>
       void                 process(Processor&& proc);
+
+                           template <typename Processor>
+      void                 process_raw(Processor&& proc);
 
       static void          set_default_device(int id);
 
@@ -50,6 +53,14 @@ namespace cycfi { namespace q
       if (next(ev))
          midi::dispatch(ev.msg, ev.time, proc);
    }
-}}
+
+   template <typename Processor>
+   inline void midi_input_stream::process_raw(Processor&& proc)
+   {
+      event ev;
+      if (next(ev))
+         proc.process_midi(ev.msg, ev.time);
+   }
+}
 
 #endif

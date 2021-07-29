@@ -1,5 +1,5 @@
 /*=============================================================================
-   Copyright (c) 2014-2019 Joel de Guzman. All rights reserved.
+   Copyright (c) 2014-2021 Joel de Guzman. All rights reserved.
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
@@ -10,7 +10,7 @@
 #include <q/detail/count_bits.hpp>
 #include <q/support/base.hpp>
 
-namespace cycfi { namespace q
+namespace cycfi::q
 {
    ////////////////////////////////////////////////////////////////////////////
    // The bitstream_acf correlates class a bit stream (stored in a bitset) by
@@ -45,10 +45,10 @@ namespace cycfi { namespace q
 
       bitstream_acf(bitset<T> const& bits)
          : _bits(bits)
-         , _mid_array(((bits.size() / value_size) / 2) - 1)
+         , _mid_array(std::max<std::size_t>(((bits.size() / value_size) / 2) - 1, 1))
       {}
 
-      std::size_t operator()(std::size_t pos)
+      std::size_t operator()(std::size_t pos) const
       {
          auto const index = pos / value_size;
          auto const shift = pos % value_size;
@@ -78,7 +78,7 @@ namespace cycfi { namespace q
       bitset<T> const&     _bits;
       std::size_t const    _mid_array;
    };
-}}
+}
 
 #endif
 

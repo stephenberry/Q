@@ -1,5 +1,5 @@
 /*=============================================================================
-   Copyright (c) 2014-2019 Joel de Guzman. All rights reserved.
+   Copyright (c) 2014-2021 Joel de Guzman. All rights reserved.
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
@@ -10,7 +10,7 @@
 #include <q/support/base.hpp>
 #include <infra/assert.hpp>
 
-namespace cycfi { namespace q { namespace detail
+namespace cycfi::q::detail
 {
    ////////////////////////////////////////////////////////////////////////////
    // dB lookup table
@@ -614,6 +614,6 @@ namespace cycfi { namespace q { namespace detail
       }
       return 1000000.0f;
    }
-}}}
+}
 
 #endif

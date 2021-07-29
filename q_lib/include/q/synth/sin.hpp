@@ -1,5 +1,5 @@
 /*=============================================================================
-   Copyright (c) 2014-2019 Joel de Guzman. All rights reserved.
+   Copyright (c) 2014-2021 Joel de Guzman. All rights reserved.
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
@@ -9,7 +9,7 @@
 #include <q/support/phase.hpp>
 #include <q/detail/sin_table.hpp>
 
-namespace cycfi { namespace q
+namespace cycfi::q
 {
    ////////////////////////////////////////////////////////////////////////////
    // sin_synth: Synthesizes sine waves.
@@ -28,6 +28,6 @@ namespace cycfi { namespace q
    };
 
    constexpr auto sin = sin_synth{};
-}}
+}
 
 #endif

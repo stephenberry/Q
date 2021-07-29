@@ -1,5 +1,5 @@
 /*=============================================================================
-   Copyright (c) 2014-2019 Joel de Guzman. All rights reserved.
+   Copyright (c) 2014-2021 Joel de Guzman. All rights reserved.
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
@@ -8,10 +8,8 @@
 
 #include <q/support/base.hpp>
 
-namespace cycfi { namespace q
+namespace cycfi::q
 {
-	using namespace literals;
-
    ////////////////////////////////////////////////////////////////////////////
    // compressor (including variant soft_knee_compressor) and expander
    // dynamically modulate the gain when the signal envelope rises above
@@ -42,7 +40,7 @@ namespace cycfi { namespace q
    // thereby the ratio for compressors is normally from 0.0...1.0. (e.g.
    // 4 : 1 compression is 1/4 or 0.25). Signal rising above the threshold is
    // attenuated, compressing the signal (compressor). For every dB above the
-   // threshold, the signal is atenuated by n dB. For example, with a ratio
+   // threshold, the signal is attenuated by n dB. For example, with a ratio
    // of 4 : 1 (0.25), 1dB above the threshold is attenuated by 4dB.
    //
    // Typically, you add some makeup gain after compression to compensate for
@@ -131,11 +129,11 @@ namespace cycfi { namespace q
    // The expander is the inverse of the compressor. The expander adjusts the
    // gain when the signal falls below the threshold, attenuating the signal.
    // With the typical "1:n" notation for expanders, the ratio parameter is
-   // n, thereby the ratio for compressors is normally from 0.0...inf. (e.g.
+   // n, thereby the ratio for expanders is normally from 0.0...inf. (e.g.
    // 1 : 4 expansion is 4). A ratio of 1 : inf is a hard gate where no
    // signal passes below the threshold.
    //
-   // For every dB below the threshold, the signal is atenuated by n dB. For
+   // For every dB below the threshold, the signal is attenuated by n dB. For
    // example, with a ratio of 4 : 1 (4), 1dB below the threshold is
    // attenuated by 4dB.
    ////////////////////////////////////////////////////////////////////////////
@@ -166,6 +164,33 @@ namespace cycfi { namespace q
       decibel  _threshold;
       float    _slope;
    };
-}}
+
+   ////////////////////////////////////////////////////////////////////////////
+   // The agc (automatic gain control) compares the envelope, env, to a
+   // reference, ref, and increases or decreases the gain to maintain a
+   // constant output level.
+   ////////////////////////////////////////////////////////////////////////////
+   struct agc
+   {
+      constexpr agc(decibel max)
+       : _max(max)
+      {}
+
+      decibel operator()(decibel env, decibel ref)
+      {
+         auto g = ref - env;
+         if (g > _max)
+            return _max - (g - _max);
+         return g;
+      }
+
+      void max(decibel max_)
+      {
+         _max = max_;
+      }
+
+      decibel  _max;
+   };
+}
 
 #endif

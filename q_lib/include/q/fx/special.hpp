@@ -1,5 +1,5 @@
 /*=============================================================================
-   Copyright (c) 2014-2019 Joel de Guzman. All rights reserved.
+   Copyright (c) 2014-2021 Joel de Guzman. All rights reserved.
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
@@ -10,11 +10,11 @@
 #include <q/support/literals.hpp>
 #include <q/fx/allpass.hpp>
 #include <q/fx/delay.hpp>
+#include <q/fx/moving_average.hpp>
+#include <q/fx/envelope.hpp>
 
-namespace cycfi { namespace q
+namespace cycfi::q
 {
-	using namespace literals;
-
    ////////////////////////////////////////////////////////////////////////////
    // Map the input, s (with expected value 0 to 1) to y1 to y2 using linear
    // interpolation. Example: if the range (y1, y2) is (0.5, 0.8), the input
@@ -163,6 +163,41 @@ namespace cycfi { namespace q
    };
 
    ////////////////////////////////////////////////////////////////////////////
+   // level_crossfade smoothly fades-in and fades-out two signals, `a` and
+   // `b`, when a control argument, `ctrl`, falls below a given `pivot`. If
+   // `ctrl` is above the pivot (e.g. -10dB) the gain of `a` is 1.0 and the
+   // gain of `b` is 0.0. if `ctrl` falls below the pivot (e.g. -10dB), `a`
+   // fades-out while `b` fades-in smoothly by (ctrl - pivot) decibels.
+   //
+   // For example, if `pivot` is -10dB, and `ctrl` is -13dB, the gain of `a`
+   // is 0.708 (-3dB == -10dB - -13dB) and the gain of `b` is 0.3 (1.0 -
+   // 0.708).
+   ////////////////////////////////////////////////////////////////////////////
+   struct level_crossfade
+   {
+      constexpr level_crossfade(decibel pivot)
+       : _pivot(pivot)
+      {}
+
+      float operator()(float a, float b, decibel ctrl)
+      {
+         if (ctrl < _pivot)
+         {
+            auto xfade = float(ctrl - _pivot);
+            return xfade * a + (1.0 - xfade) * b;
+         }
+         return a;
+      }
+
+      void pivot(decibel pivot_)
+      {
+         _pivot = pivot_;
+      }
+
+      decibel  _pivot;
+   };
+
+   ////////////////////////////////////////////////////////////////////////////
    // dynamic_smoother based on Dynamic Smoothing Using Self Modulating Filter
    // by Andrew Simper, Cytomic, 2014, andy@cytomic.com
    //
@@ -269,6 +304,16 @@ namespace cycfi { namespace q
          return _ticks != 0;
       }
 
+      bool operator()() const
+      {
+         return _ticks != 0;
+      }
+
+      void reset()
+      {
+         _ticks = 0;
+      }
+
       std::uint32_t  _n_samples;
       std::uint32_t  _ticks = 0;
    };
@@ -287,6 +332,6 @@ namespace cycfi { namespace q
       }
       bool _state = 0;
    };
-}}
+}
 
 #endif

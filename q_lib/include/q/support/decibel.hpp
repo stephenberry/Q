@@ -1,5 +1,5 @@
 /*=============================================================================
-   Copyright (c) 2014-2019 Joel de Guzman. All rights reserved.
+   Copyright (c) 2014-2021 Joel de Guzman. All rights reserved.
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
@@ -9,7 +9,7 @@
 #include <cmath>
 #include <q/detail/db_table.hpp>
 
-namespace cycfi { namespace q
+namespace cycfi::q
 {
    ////////////////////////////////////////////////////////////////////////////
    struct decibel
@@ -17,13 +17,19 @@ namespace cycfi { namespace q
       struct _direct {};
       constexpr static _direct direct = {};
 
-      constexpr decibel() : val(0.0f) {}
-      constexpr decibel(double val);
-      constexpr decibel(double val, _direct) : val(val) {}
+      constexpr            decibel() : val(0.0f) {}
+      constexpr explicit   decibel(double val);
+      constexpr            decibel(double val, _direct) : val(val) {}
 
-      constexpr explicit operator double() const   { return detail::db2a(val); }
-      constexpr explicit operator float() const    { return detail::db2a(val); }
-      constexpr decibel operator-() const          { return { -val, direct }; }
+      constexpr explicit   operator double() const    { return detail::db2a(val); }
+      constexpr explicit   operator float() const     { return detail::db2a(val); }
+      constexpr decibel    operator+() const          { return { val, direct }; }
+      constexpr decibel    operator-() const          { return { -val, direct }; }
+
+      constexpr decibel&   operator+=(decibel b)      { val += b.val; return *this; }
+      constexpr decibel&   operator-=(decibel b)      { val -= b.val; return *this; }
+      constexpr decibel&   operator*=(decibel b)      { val *= b.val; return *this; }
+      constexpr decibel&   operator/=(decibel b)      { val /= b.val; return *this; }
 
       double val = 0.0f;
    };
@@ -57,6 +63,11 @@ namespace cycfi { namespace q
       return decibel{ a.val * b, decibel::direct };
    }
 
+   constexpr decibel operator*(decibel a, int b)
+   {
+      return decibel{ a.val * b, decibel::direct };
+   }
+
    constexpr decibel operator*(double a, decibel b)
    {
       return decibel{ a * b.val, decibel::direct };
@@ -67,19 +78,29 @@ namespace cycfi { namespace q
       return decibel{ a * b.val, decibel::direct };
    }
 
+   constexpr decibel operator*(int a, decibel b)
+   {
+      return decibel{ a * b.val, decibel::direct };
+   }
+
    inline decibel operator/(decibel a, decibel b)
    {
-      return decibel{ fast_div(a.val, b.val), decibel::direct };
+      return decibel{ a.val / b.val, decibel::direct };
    }
 
    inline decibel operator/(decibel a, double b)
    {
-      return decibel{ fast_div(a.val, b), decibel::direct };
+      return decibel{ a.val / b, decibel::direct };
    }
 
    inline decibel operator/(decibel a, float b)
    {
-      return decibel{ fast_div(a.val, b), decibel::direct };
+      return decibel{ a.val / b, decibel::direct };
+   }
+
+   inline decibel operator/(decibel a, int b)
+   {
+      return decibel{ a.val / b, decibel::direct };
    }
 
    constexpr bool operator==(decibel a, decibel b)
@@ -111,6 +132,6 @@ namespace cycfi { namespace q
    {
       return a.val >= b.val;
    }
-}}
+}
 
 #endif

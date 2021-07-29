@@ -1,5 +1,5 @@
 /*=============================================================================
-   Copyright (c) 2014-2019 Joel de Guzman. All rights reserved.
+   Copyright (c) 2014-2021 Joel de Guzman. All rights reserved.
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
@@ -13,7 +13,7 @@
 #include <infra/support.hpp>
 #include <q/detail/fast_math.hpp>
 
-namespace cycfi { namespace q
+namespace cycfi::q
 {
    ////////////////////////////////////////////////////////////////////////////
    // min_max_range
@@ -187,6 +187,11 @@ namespace cycfi { namespace q
       return abs(a-b) <= eps;
    }
 
+   inline bool abs_within(int a, int b, int eps)
+   {
+      return abs(a-b) <= eps;
+   }
+
    ////////////////////////////////////////////////////////////////////////////
    // rel_within
    ////////////////////////////////////////////////////////////////////////////
@@ -194,6 +199,6 @@ namespace cycfi { namespace q
    {
       return abs(a-b) <= eps * std::max(abs(a), abs(b));
    }
-}}
+}
 
 #endif

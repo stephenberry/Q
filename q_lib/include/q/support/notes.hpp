@@ -1,5 +1,5 @@
 /*=============================================================================
-   Copyright (C) 2014-2019 Joel de Guzman. All rights reserved.
+   Copyright (C) 2014-2021 Joel de Guzman. All rights reserved.
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
@@ -8,7 +8,7 @@
 
 #include <q/support/literals.hpp>
 
-namespace cycfi { namespace q
+namespace cycfi::q
 {
    // We need this because we don't have A constexpr std::pow
    constexpr auto _12th_root = 1.059463094359295;
@@ -20,6 +20,11 @@ namespace cycfi { namespace q
 
    struct octave_notes
    {
+      // Oddity: C is actually the start of an octave, not A. So, an octave
+      // starts from C to B, not A to G. For example C0 to B0 is the first
+      // (lowest) octave. So that is why we have: C = next_frequency(B) / 2
+      // in the ctor below.
+
       constexpr octave_notes(frequency base)
        : A     (base)
        , As    (next_frequency(A))
@@ -54,15 +59,15 @@ namespace cycfi { namespace q
 
    CONSTEXPR octave_notes note[] =
    {
-      { 27.5 }
-    , { 55 }
-    , { 110 }
-    , { 220 }
-    , { 440 }
-    , { 880 }
-    , { 1760 }
-    , { 3520 }
-    , { 7040 }
+      frequency(27.5)
+    , frequency(55)
+    , frequency(110)
+    , frequency(220)
+    , frequency(440)
+    , frequency(880)
+    , frequency(1760)
+    , frequency(3520)
+    , frequency(7040)
    };
 
    struct octave_frequencies
@@ -94,16 +99,16 @@ namespace cycfi { namespace q
 
    CONSTEXPR octave_frequencies note_frequencies[] =
    {
-      { 13.75 }
-    , { 27.5 }
-    , { 55 }
-    , { 110 }
-    , { 220 }
-    , { 440 }
-    , { 880 }
-    , { 1760 }
-    , { 3520 }
-    , { 7040 }
+      { frequency(13.75) }
+    , { frequency(27.5) }
+    , { frequency(55) }
+    , { frequency(110) }
+    , { frequency(220) }
+    , { frequency(440) }
+    , { frequency(880) }
+    , { frequency(1760) }
+    , { frequency(3520) }
+    , { frequency(7040) }
    };
 
    namespace notes
@@ -312,7 +317,7 @@ namespace cycfi { namespace q
        , note[7].Gs
       };
    }
-}}
+}
 
 #endif
 

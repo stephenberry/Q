@@ -1,5 +1,5 @@
 /*=============================================================================
-   Copyright (c) 2014-2019 Joel de Guzman. All rights reserved.
+   Copyright (c) 2014-2021 Joel de Guzman. All rights reserved.
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
@@ -11,7 +11,7 @@
 #include <q/support/base.hpp>
 #include <q/detail/init_store.hpp>
 
-namespace cycfi { namespace q
+namespace cycfi::q
 {
    ////////////////////////////////////////////////////////////////////////////
    // ring_buffer
@@ -41,6 +41,7 @@ namespace cycfi { namespace q
       T const&          operator[](std::size_t index) const;
       T&                operator[](std::size_t index);
       void              clear();
+      void              fill(T val);
       void              pop_front();
 
    private:
@@ -138,11 +139,18 @@ namespace cycfi { namespace q
          e = T();
    }
 
+   // Fill the ring_buffer
+   template <typename T, typename Storage>
+   inline void ring_buffer<T, Storage>::fill(T val)
+   {
+      for (auto& e : _data)
+         e = val;
+   }
    template <typename T, typename Storage>
    inline void ring_buffer<T, Storage>::pop_front()
    {
       ++_pos;
    }
-}}
+}
 
 #endif

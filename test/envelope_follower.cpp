@@ -1,5 +1,5 @@
 /*=============================================================================
-   Copyright (c) 2014-2019 Joel de Guzman. All rights reserved.
+   Copyright (c) 2014-2021 Joel de Guzman. All rights reserved.
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
@@ -15,7 +15,7 @@
 namespace q = cycfi::q;
 using namespace q::literals;
 
-void process(std::string name, q::duration hold)
+void process(std::string name, q::duration period)
 {
    ////////////////////////////////////////////////////////////////////////////
    // Read audio file
@@ -30,15 +30,10 @@ void process(std::string name, q::duration hold)
    constexpr auto n_channels = 4;
    std::vector<float> out(src.length() * n_channels);
 
-   q::decibel  comp_threshold = -18_dB;
-   q::decibel  comp_width = 3_dB;
-   float       comp_slope = 1.0/4;
-   float       makeup_gain = 4;
-
    // Envelope
-   auto fast = q::fast_envelope_follower{ hold, sps };
-   auto peak = q::peak_envelope_follower{ hold * 10, sps };
-   auto env = q::envelope_follower{ 2_ms, hold * 10, sps };
+   auto fast = q::fast_envelope_follower{ period/2, sps };
+   auto peak = q::peak_envelope_follower{ 2_s, sps };
+   auto env = q::envelope_follower{ 2_ms, 2_s, sps };
 
    for (auto i = 0; i != in.size(); ++i)
    {
@@ -84,6 +79,7 @@ int main()
    process("GLines1", g.period());
    process("GLines2", g.period());
    process("GLines3", g.period());
+   process("Transient", g.period());
 
    return 0;
 }

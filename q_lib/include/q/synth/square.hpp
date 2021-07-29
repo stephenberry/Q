@@ -1,5 +1,5 @@
 /*=============================================================================
-   Copyright (c) 2014-2019 Joel de Guzman. All rights reserved.
+   Copyright (c) 2014-2021 Joel de Guzman. All rights reserved.
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
@@ -9,7 +9,7 @@
 #include <q/support/phase.hpp>
 #include <q/utility/antialiasing.hpp>
 
-namespace cycfi { namespace q
+namespace cycfi::q
 {
    ////////////////////////////////////////////////////////////////////////////
    // basic square-wave synthesizer (not bandwidth limited)
@@ -18,7 +18,7 @@ namespace cycfi { namespace q
    {
       constexpr float operator()(phase p) const
       {
-         constexpr auto middle = phase::max() / 2;
+         constexpr auto middle = phase::middle();
          return p < middle ? 1.0f : -1.0f;
       }
 
@@ -37,7 +37,7 @@ namespace cycfi { namespace q
    {
       constexpr float operator()(phase p, phase dt) const
       {
-         constexpr auto middle = phase::max() / 2;
+         constexpr auto middle = phase::middle();
          auto r = p < middle ? 1.0f : -1.0f;
 
          // Correct rising discontinuity
@@ -56,6 +56,6 @@ namespace cycfi { namespace q
    };
 
    constexpr auto square = square_synth{};
-}}
+}
 
 #endif

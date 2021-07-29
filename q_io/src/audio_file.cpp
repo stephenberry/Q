@@ -1,5 +1,5 @@
 /*=============================================================================
-   Copyright (c) 2014-2019 Joel de Guzman. All rights reserved.
+   Copyright (c) 2014-2021 Joel de Guzman. All rights reserved.
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
@@ -10,7 +10,7 @@
 #define DR_WAV_IMPLEMENTATION
 #include <dr_wav.h>
 
-namespace cycfi { namespace q
+namespace cycfi::q
 {
    struct wav_impl : drwav {};
 
@@ -41,7 +41,7 @@ namespace cycfi { namespace q
       if (_wav)
          return _wav->channels;
       return 0;
-}
+   }
 
    wav_reader::wav_reader(char const* filename)
    {
@@ -60,6 +60,28 @@ namespace cycfi { namespace q
       if (_wav)
          return drwav_read_f32(_wav, len, data);
       return 0;
+   }
+
+
+   bool wav_reader::restart()
+   {
+      if (_wav)
+         return drwav_seek_to_first_sample(_wav);
+      return false;
+   }
+
+   std::size_t wav_reader::position()
+   {
+      if (_wav)
+         return _wav->totalSampleCount - (_wav->bytesRemaining / _wav->bytesPerSample);
+      return 0;
+   }
+
+   bool wav_reader::seek(std::uint64_t target)
+   {
+      if (_wav)
+         return drwav_seek_to_sample(_wav, target);
+      return false;
    }
 
    wav_writer::wav_writer(
@@ -81,5 +103,5 @@ namespace cycfi { namespace q
          return drwav_write(_wav, len, data);
       return 0;
    }
-}}
+}
 
